@@ -35,7 +35,9 @@ def sigmoid_grad(s):
     """
 
     ### YOUR CODE HERE
+
     ds = s*(1-s)
+
     ### END YOUR CODE
 
     return ds
@@ -72,7 +74,19 @@ def test_sigmoid():
     """
     print("Running your tests...")
     ### YOUR CODE HERE
-    raise NotImplementedError
+    x = np.array([[4, 6, 3], [-6, -2, 4]])
+    f = sigmoid(x)
+    g = sigmoid_grad(f)
+    print(f)
+    f_ans = np.array([
+        [0.98201379004, 0.99752737684, 0.95257412682],
+        [0.00247262316, 0.11920292202, 0.98201379004]])
+    assert np.allclose(f, f_ans, rtol=1e-05, atol=1e-06)
+    print(g)
+    g_ans = np.array([
+        [0.01766270621, 0.00246650929, 0.04517665973],
+        [0.00246650929, 0.1049935854, 0.01766270621]])
+    assert np.allclose(g, g_ans, rtol=1e-05, atol=1e-06)
     ### END YOUR CODE
 
 
