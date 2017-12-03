@@ -1,4 +1,4 @@
 *videos/
 datasets/
 glove.*
-.ipynb_checkpoints/*
+*.ipynb_checkpoints/*
