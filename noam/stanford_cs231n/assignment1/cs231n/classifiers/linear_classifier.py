@@ -53,6 +53,11 @@ class LinearClassifier(object):
       # Hint: Use np.random.choice to generate indices. Sampling with         #
       # replacement is faster than sampling without replacement.              #
       #########################################################################
+
+      batch_indeces = np.random.choice(xrange(num_train), batch_size)
+      X_batch = X[batch_indeces]
+      y_batch = y[batch_indeces]
+
       pass
       #########################################################################
       #                       END OF YOUR CODE                                #
@@ -67,6 +72,8 @@ class LinearClassifier(object):
       # TODO:                                                                 #
       # Update the weights using the gradient and the learning rate.          #
       #########################################################################
+      
+      self.W += -learning_rate * grad
       pass
       #########################################################################
       #                       END OF YOUR CODE                                #
@@ -74,7 +81,7 @@ class LinearClassifier(object):
 
       if verbose and it % 100 == 0:
         print('iteration %d / %d: loss %f' % (it, num_iters, loss))
-
+    
     return loss_history
 
   def predict(self, X):
@@ -96,6 +103,9 @@ class LinearClassifier(object):
     # TODO:                                                                   #
     # Implement this method. Store the predicted labels in y_pred.            #
     ###########################################################################
+
+    y_pred = np.argmax(np.dot(X, self.W), axis=1)
+
     pass
     ###########################################################################
     #                           END OF YOUR CODE                              #
@@ -132,4 +142,3 @@ class Softmax(LinearClassifier):
 
   def loss(self, X_batch, y_batch, reg):
     return softmax_loss_vectorized(self.W, X_batch, y_batch, reg)
-

@@ -111,14 +111,39 @@ def forward_backward_prop(data, labels, params, dimensions):
     gradW1 += np.dot(data.T, dsig_xj_exp)
     gradb1 += dsig_xj_exp
 
-    print(W2.shape)
-    print(gradW2.shape)
-    print(W1.shape)
-    print(gradW1.shape)
-    print(b2.shape)
-    print(gradb2.shape)
-    print(b1.shape)
-    print(gradb1.shape)
+    # tryouts from doing the math, 2017.12.01
+    sig_var = (np.dot(np.sum(data, axis=0), W1)) + b1   # 1 x 5
+    sig_stuff = np.multiply((1 - sigmoid(sig_var)), sigmoid(sig_var))
+    dW1_pt1 = np.multiply(W2.T, np.dot(np.sum(data, axis=0).T, sig_stuff))   # 10 x 5
+    
+    sig_pt2_var = np.dot(data, W1) + b1   # M x 5
+    sig_pt2_plus = np.dot(sigmoid(sig_pt2_var), W2) + b2   # M x 10
+    dW1_pt2_num = np.dot(np.multiply(np.exp(sig_pt2_plus), data).T, np.multiply(sigmoid(sig_pt2_var),(1-sigmoid(sig_pt2_var))) ) #10 x 5
+    dW1_pt2_num = np.multiply(dW1_pt2_num, W2.T)   # 10 x 5
+    dW1_pt2_den = np.sum(exp(sig_pt2_plus), axis=0) # 1 X 10
+    dW1_pt_2_fraction = np.multiply(dW1_pt2_num, np.outer((1 / dW1_pt2_den).T, np.ones(5))) # 10 x 5
+
+    gradW1 = np.multiply(np.outer(np.sum(labels, axis=0), np.ones(5), (dW1_pt1 - dW1_fraction)))
+
+    db1_pt1 = np.multiply(W2.T, np.outer(np.ones(10), sig_stuff))
+    db1_pt2_num = np.dot(np.exp(sig_pt2_plus).T, np.multiply(sigmoid(sig_pt2_var),(1-sigmoid(sig_pt2_var))) ) #10 x 5
+    db1_pt2_num = np.multiply(db1_pt2_num, W2.T)   # 10 x 5
+    db1_pt_2_fraction = np.multiply(db1_pt2_num, np.outer((1 / dW1_pt2_den).T, np.ones(5))) # 10 x 5
+    gradb1 = np.multiply(np.outer(np.sum(labels, axis=0), np.ones(5), (db1_pt1 - db1_pt2_fraction)))
+
+    dW2_pt1 = np.outer(sigmoid(sig_var).T, ones(10)) # 5 x 10
+    dW2_pt2_num =  np.dot(sig_pt2_var.T, np.exp(sigmoid(sig_pt2_plus)))
+
+    # D = 10, H = 5
+    print(W2.shape)        #[5, 10]
+    print(gradW2.shape)    #[5, 10]
+    print(W1.shape)        #[10, 5]
+    print(gradW1.shape)    #[10, 5]
+    print(b2.shape)        #[1, 10]
+    print(gradb2.shape)    #[20, 10] (!!!)
+    print(b1.shape)        #[1, 5]
+    print(gradb1.shape)    #[20, 5] (!!!)
+    print('have printed shapes')
     ### END YOUR CODE
 
     ### Stack gradients (do not modify)
@@ -131,7 +156,7 @@ def forward_backward_prop(data, labels, params, dimensions):
 def sanity_check():
     """
     Set up fake data and parameters for the neural network, and test using
-    gradcheck.
+    gradcheck. 
     """
     print("Running sanity check...")
 
