@@ -1,6 +1,6 @@
 import numpy as np
-from random import shuffle
 from past.builtins import xrange
+
 
 def smax(scores, label):
   """ Takes a (1,C) score vector and the index of the correct score. """
@@ -72,7 +72,6 @@ def softmax_loss_vectorized(W, X, y, reg):
   # Initialize the loss and gradient to zero.
   loss = 0.0
   dW = np.zeros_like(W)  # (D, C)
-  num_classes = W.shape[1]
   N_train = X.shape[0]
   #############################################################################
   # TODO: Compute the softmax loss and its gradient using no explicit loops.  #
