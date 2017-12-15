@@ -89,14 +89,13 @@ class TwoLayerNet(object):
         if y is None:
             return z3
 
-        # mine:
         z3 -= z3.max(keepdims=True)  # (N, C)
         num_train = X.shape[0]
         exp = np.exp(z3)
         denom = np.exp(z3).sum(axis=1, keepdims=True)
         a3 = exp/denom
         a3 = (exp / denom)  # a3 = smax(z3)  ; (N, C)
-        y_hat = np.log(a3[range(5), y])  # (N, C)
+        y_hat = np.log(a3[range(num_train), y])  # (N, C)
         loss = -np.sum(y_hat) / num_train + reg * (np.sum(W1 * W1) + np.sum(W2 * W2))
 
         #############################################################################
@@ -142,9 +141,13 @@ class TwoLayerNet(object):
         return loss, grads
 
     def train(self, X, y, X_val, y_val,
-                        learning_rate=1e-3, learning_rate_decay=0.95,
-                        reg=5e-6, num_iters=100,
-                        batch_size=200, verbose=False):
+        learning_rate=1e-3,
+        learning_rate_decay=0.95,
+        reg=5e-6,
+        num_iters=100,
+        batch_size=200,
+        verbose=False
+    ):
         """
         Train this neural network using stochastic gradient descent.
 
@@ -170,15 +173,17 @@ class TwoLayerNet(object):
         train_acc_history = []
         val_acc_history = []
 
+        batch_size = min(num_train, batch_size)
+        param_scales = {}
         for it in xrange(num_iters):
-            X_batch = None
-            y_batch = None
 
             #########################################################################
             # TODO: Create a random minibatch of training data and labels, storing  #
             # them in X_batch and y_batch respectively.                             #
             #########################################################################
-            pass
+            batch_mask = np.random.choice(range(num_train), batch_size, replace=False)
+            X_batch = X[batch_mask]
+            y_batch = y[batch_mask]
             #########################################################################
             #                             END OF YOUR CODE                          #
             #########################################################################
@@ -193,13 +198,26 @@ class TwoLayerNet(object):
             # using stochastic gradient descent. You'll need to use the gradients   #
             # stored in the grads dictionary defined above.                         #
             #########################################################################
-            pass
+            for param_name in self.params:
+                update = grads[param_name] * learning_rate
+                self.params[param_name] -= update
+                # Track the update scales for debugging. Karpathy suggests ~1e-3.
+                update_scale = np.linalg.norm(update.ravel())
+                param_scale = np.linalg.norm(self.params[param_name].ravel())
+
+                param_scales[param_name] = update_scale / param_scale
+                if np.isnan(np.sum(self.params[param_name])):
+                    print('NANs found, ABORTING. ')
+                    return
+
             #########################################################################
             #                             END OF YOUR CODE                          #
             #########################################################################
 
             if verbose and it % 100 == 0:
                 print('iteration %d / %d: loss %f' % (it, num_iters, loss))
+                for param, scale in param_scales.items():
+                    print(f'\t{param} update scale is: {scale}')
 
             # Every epoch, check train and val accuracy and decay learning rate.
             if it % iterations_per_epoch == 0:
@@ -234,11 +252,10 @@ class TwoLayerNet(object):
             to have class c, where 0 <= c < C.
         """
         y_pred = None
-
         ###########################################################################
         # TODO: Implement this function; it should be VERY simple!                #
         ###########################################################################
-        pass
+        y_pred = np.argmax(self.loss(X), axis=1)
         ###########################################################################
         #                              END OF YOUR CODE                           #
         ###########################################################################
