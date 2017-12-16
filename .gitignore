@@ -2,4 +2,3 @@
 datasets/
 glove.*
 *.ipynb_checkpoints/*
-.env/
