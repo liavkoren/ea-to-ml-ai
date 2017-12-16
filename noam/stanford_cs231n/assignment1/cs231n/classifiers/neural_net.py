@@ -107,15 +107,27 @@ class TwoLayerNet(object):
     # loss /= num_train
     # loss += 0.5 * reg * np.sum(W1 * W1) + 0.5 * reg * np.sum(W2 * W2)
 
-    # compute the class probabilities
-    exp_scores = np.exp(scores)
-    probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True) # [N x K]
+    # # compute the class probabilities
+    # scores -= np.max(scores)
+    # exp_scores = np.exp(scores)
 
-    # average cross-entropy loss and regularization
-    correct_logprobs = -np.log(probs[range(N), y])
-    data_loss = np.sum(correct_logprobs) / N
-    reg_loss = 0.5 * reg * np.sum(W1 * W1) + 0.5 * reg * np.sum(W2 * W2)
-    loss = data_loss + reg_loss
+    # probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True) # [N x K]
+
+    # # average cross-entropy loss and regularization
+    # correct_logprobs = -np.log(probs[range(N), y])
+    # data_loss = np.sum(correct_logprobs) / N
+    # reg_loss = 0.5 * reg * np.sum(W1 * W1) + 0.5 * reg * np.sum(W2 * W2)
+    # loss = data_loss + reg_loss
+
+    #import pdb; pdb.set_trace()
+    scores -= scores.max(keepdims=True)
+    scores = np.exp(scores)
+    scores_sums = np.sum(scores, axis=1, keepdims=True)
+    scores_correct_class = scores[range(N), y].reshape((N,1))
+    # sc_c_c.reshape((5,1))
+    loss = scores_correct_class / scores_sums
+    loss = -np.sum(np.log(loss)) / N + reg * (np.sum(W1 * W1) + np.sum(W2 * W2))
+
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -129,7 +141,8 @@ class TwoLayerNet(object):
     #############################################################################
 
     # compute the gradient on scores
-    dscores = probs
+    # dscores = probs
+    dscores = scores / scores_sums
     dscores[range(N),y] -= 1
     dscores /= N
 
@@ -145,13 +158,12 @@ class TwoLayerNet(object):
     grads['b1'] = np.sum(dhidden, axis=0)
 
     # add regularization gradient contribution
-    grads['W2'] += reg * W2
-    grads['W1'] += reg * W1
+    grads['W2'] += reg * W2 * 2
+    grads['W1'] += reg * W1 * 2
 
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
-
     return loss, grads
 
   def train(self, X, y, X_val, y_val,
@@ -182,7 +194,6 @@ class TwoLayerNet(object):
     loss_history = []
     train_acc_history = []
     val_acc_history = []
-
     for it in xrange(num_iters):
       X_batch = None
       y_batch = None
@@ -191,7 +202,14 @@ class TwoLayerNet(object):
       # TODO: Create a random minibatch of training data and labels, storing  #
       # them in X_batch and y_batch respectively.                             #
       #########################################################################
-      pass
+      batch_indices = np.random.choice(xrange(num_train), batch_size)
+      X_batch = X[batch_indices, :]
+      y_batch = y[batch_indices]
+      # shuffle_indexes = np.arange(num_train)
+      # np.random.shuffle(shuffle_indexes)
+      # shuffle_indexes = shuffle_indexes[0:batch_size-1]
+      # X_batch = X[shuffle_indexes, :]
+      # y_batch = y[shuffle_indexes]
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -199,14 +217,16 @@ class TwoLayerNet(object):
       # Compute loss and gradients using the current minibatch
       loss, grads = self.loss(X_batch, y=y_batch, reg=reg)
       loss_history.append(loss)
-
       #########################################################################
       # TODO: Use the gradients in the grads dictionary to update the         #
       # parameters of the network (stored in the dictionary self.params)      #
       # using stochastic gradient descent. You'll need to use the gradients   #
       # stored in the grads dictionary defined above.                         #
       #########################################################################
-      pass
+      self.params['W1'] = -learning_rate * grads['W1']
+      self.params['b1'] = -learning_rate * grads['b1']
+      self.params['W2'] = -learning_rate * grads['W2']
+      self.params['b2'] = -learning_rate * grads['b2']
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -218,7 +238,9 @@ class TwoLayerNet(object):
       if it % iterations_per_epoch == 0:
         # Check accuracy
         train_acc = (self.predict(X_batch) == y_batch).mean()
+        #train_acc = np.mean(self.predict(X_batch) == y_batch)
         val_acc = (self.predict(X_val) == y_val).mean()
+        #val_acc = np.mean(self.predict(X_val) == y_val)
         train_acc_history.append(train_acc)
         val_acc_history.append(val_acc)
 
@@ -251,7 +273,13 @@ class TwoLayerNet(object):
     ###########################################################################
     # TODO: Implement this function; it should be VERY simple!                #
     ###########################################################################
-    pass
+    # W1, b1 = self.params['W1'], self.params['b1']
+    # W2, b2 = self.params['W2'], self.params['b2']
+    # z1 = X.dot(W1) + b1
+    # a1 = np.maximum(0, z1) # pass through ReLU activation function
+    # scores = a1.dot(W2) + b2
+    # y_pred = np.argmax(scores, axis=1)
+    y_pred = np.argmax(self.loss(X), axis=1)
     ###########################################################################
     #                              END OF YOUR CODE                           #
     ###########################################################################

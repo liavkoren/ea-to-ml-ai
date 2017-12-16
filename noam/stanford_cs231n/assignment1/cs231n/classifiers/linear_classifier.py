@@ -54,9 +54,9 @@ class LinearClassifier(object):
       # replacement is faster than sampling without replacement.              #
       #########################################################################
 
-      batch_indeces = np.random.choice(xrange(num_train), batch_size)
-      X_batch = X[batch_indeces]
-      y_batch = y[batch_indeces]
+      batch_indices = np.random.choice(xrange(num_train), batch_size)
+      X_batch = X[batch_indices]
+      y_batch = y[batch_indices]
 
       pass
       #########################################################################
@@ -72,7 +72,7 @@ class LinearClassifier(object):
       # TODO:                                                                 #
       # Update the weights using the gradient and the learning rate.          #
       #########################################################################
-      
+
       self.W += -learning_rate * grad
       pass
       #########################################################################
@@ -81,7 +81,7 @@ class LinearClassifier(object):
 
       if verbose and it % 100 == 0:
         print('iteration %d / %d: loss %f' % (it, num_iters, loss))
-    
+
     return loss_history
 
   def predict(self, X):
@@ -111,10 +111,10 @@ class LinearClassifier(object):
     #                           END OF YOUR CODE                              #
     ###########################################################################
     return y_pred
-  
+
   def loss(self, X_batch, y_batch, reg):
     """
-    Compute the loss function and its derivative. 
+    Compute the loss function and its derivative.
     Subclasses will override this.
 
     Inputs:
