@@ -203,7 +203,7 @@ class TwoLayerNet(object):
       # them in X_batch and y_batch respectively.                             #
       #########################################################################
       batch_indices = np.random.choice(xrange(num_train), batch_size)
-      X_batch = X[batch_indices, :]
+      X_batch = X[batch_indices]
       y_batch = y[batch_indices]
       # shuffle_indexes = np.arange(num_train)
       # np.random.shuffle(shuffle_indexes)
