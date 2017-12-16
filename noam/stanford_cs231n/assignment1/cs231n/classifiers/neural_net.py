@@ -76,11 +76,13 @@ class TwoLayerNet(object):
     # Store the result in the scores variable, which should be an array of      #
     # shape (N, C).                                                             #
     #############################################################################
-    pass
+    z1 = X.dot(W1) + b1
+    a1 = np.maximum(0, z1) # pass through ReLU activation function
+    scores = a1.dot(W2) + b2
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
-    
+
     # If the targets are not given then jump out, we're done
     if y is None:
       return scores
@@ -93,7 +95,27 @@ class TwoLayerNet(object):
     # in the variable loss, which should be a scalar. Use the Softmax           #
     # classifier loss.                                                          #
     #############################################################################
-    pass
+    # num_train = X.shape[0]
+    # #num_classes = W.shape[1]
+
+    # num_train = X.shape[0]
+    # #f = X.dot(W)
+    # #f -= np.max(f, axis=1, keepdims=True)
+    # scores_sum = np.sum(np.exp(scores), axis=1, keepdims=True)
+    # sfmax = np.exp(scores)/scores_sum
+    # loss = np.sum(-np.log(sfmax[np.arange(num_train), y]))
+    # loss /= num_train
+    # loss += 0.5 * reg * np.sum(W1 * W1) + 0.5 * reg * np.sum(W2 * W2)
+
+    # compute the class probabilities
+    exp_scores = np.exp(scores)
+    probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True) # [N x K]
+
+    # average cross-entropy loss and regularization
+    correct_logprobs = -np.log(probs[range(N), y])
+    data_loss = np.sum(correct_logprobs) / N
+    reg_loss = 0.5 * reg * np.sum(W1 * W1) + 0.5 * reg * np.sum(W2 * W2)
+    loss = data_loss + reg_loss
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -105,7 +127,27 @@ class TwoLayerNet(object):
     # and biases. Store the results in the grads dictionary. For example,       #
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     #############################################################################
-    pass
+
+    # compute the gradient on scores
+    dscores = probs
+    dscores[range(N),y] -= 1
+    dscores /= N
+
+    # W2 and b2
+    grads['W2'] = np.dot(a1.T, dscores)
+    grads['b2'] = np.sum(dscores, axis=0)
+    # next backprop into hidden layer
+    dhidden = np.dot(dscores, W2.T)
+    # backprop the ReLU non-linearity
+    dhidden[a1 <= 0] = 0
+    # finally into W,b
+    grads['W1'] = np.dot(X.T, dhidden)
+    grads['b1'] = np.sum(dhidden, axis=0)
+
+    # add regularization gradient contribution
+    grads['W2'] += reg * W2
+    grads['W1'] += reg * W1
+
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -121,7 +163,7 @@ class TwoLayerNet(object):
 
     Inputs:
     - X: A numpy array of shape (N, D) giving training data.
-    - y: A numpy array f shape (N,) giving training labels; y[i] = c means that
+    - y: A numpy array of shape (N,) giving training labels; y[i] = c means that
       X[i] has label c, where 0 <= c < C.
     - X_val: A numpy array of shape (N_val, D) giving validation data.
     - y_val: A numpy array of shape (N_val,) giving validation labels.
