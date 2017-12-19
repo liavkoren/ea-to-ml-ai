@@ -1,0 +1,75 @@
+- Understanding the math models behind the various techniuqes?
+    - Seminar?
+    - Talk to Carolyn
+
+Word embeddings
+    - SVD methods
+        - Based on co-occurrence matrices
+        - Based global stats over the corpus
+        - Fails to capture local structure
+        - Co-occurrence is big, and the SVD becomes expensive to compute.
+            - Do the SVD, then use the largest components of the final rotation matrix U as the basis for the word embedding.
+        - Capture some sense of word similarities, but perform poorly on analogy task?
+
+    - Word2Vec
+        - Window based
+        - Cheaper to compute than co-occurrence SVD
+        - Ignores global corpus stats
+        Algos:
+            - CBOW
+                Predicting a center word from the surrounding context
+            - Skipgram
+                - Predicting context from centre word
+                --> How do you order the predicted words??
+        Training
+            web.stanford.edu/class/cs224n/lecture_notes/cs224n-2017-notes1.pdf
+            - Hierarchical smax
+                - Mikolov et al also present hierarchical softmax as a much more
+                efficient alternative to the normal softmax.
+            - Neg sampling
+                - Adds a random noise term to the cost function. Objective is to max likelihood that word pars are for a real distribution and minimize likelihood they're from a random distribution.
+                - Ie: learn something about which words co-occurre.
+                - Concretely:
+                    Given 'quick', want high prob for 'fox', low prob for everything else. But everything else is expensive. Just pick a random sample of the "negatives" and set those to zero.
+                - Select random words using 'Unigram distribution': frequency counts. (Sometimes ^ 3/4).
+
+                - See Nikolov et al, 'Distributed Representations of Words and Phrases and their Compositionality', first presentation.
+
+
+    - Glove
+        - Uses global word stats but also captures "meaningful substructure" (like w2vec)
+        - Least-squares based
+        --> Ignores zeros in the co-occurrence matrix
+        - Using squared error is faster than smax
+        -
+
+Evaluating Quality
+    - Intrinsic
+        - Simpler
+        - Faster
+        - Less realistic
+        - May not be useful -- needs validation
+        - More modular
+        - Eg: analogies task
+        - Can give a rating for a subcomponent of a larger system
+    - Extrinsic
+        - Often a complex task that we actually care about, generally done by an ML pipeline.
+        - The score represents the performance of the whole system, so harder to tune.
+        - Complementary to Intrinsic
+        - Eg: Named entity tagging; POS; sentiment;
+
+    - HyperParams
+        - Window size
+            - Smaller -> better syntax
+            - Bigger -> better semantics
+        - Corpus source/size
+        - Window symmetry
+        - Word vector Dim
+        - Word
+
+Retraining
+    - Take pre-learned weights and update them for a specific task
+    - Useful if you have a large corpus and can likely update all/most of your words. If not, too many errors.
+    - Done when moving from intrinsic to extrinsic tasks
+
+
